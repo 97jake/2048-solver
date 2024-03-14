@@ -4,9 +4,15 @@ This repo aims to create a bot to solve the game 2048
 
 # Startup
 
-After cloning the repo run 
+After cloning the repo, run
+
+(for Mac, use this command)
 ```
 ./scripts/setup_project.sh
+```
+(for Windows, use this command)
+```
+./scripts/setup_project.bat
 ```
 
 Then you can start playing! Run 
