@@ -1,4 +1,4 @@
-import configparser
+from config import config
 import numpy as np
 import logging
 import random
@@ -8,12 +8,10 @@ class GameBoard:
 
     def __init__(self, logger = None):
 
-        self.config = configparser['Settings']
-
         self.board = np.zeros((4,4), np.int16)
         self.new_number_generation()
 
-        self.color_codes = self.config['GAME_COLORS']
+        self.color_codes = config.GAME_COLORS
 
         self.logger = logger
         if not self.logger:

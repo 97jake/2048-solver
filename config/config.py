@@ -1,6 +1,10 @@
-[Settings]
+from game.player_types import *
+
+import logging
+import numpy as np
+
 #File Paths
-base_dir = 'drive/MyDrive/2048Solver/'
+base_dir = './data/'
 HISTORY_DIR = base_dir + 'game_history/'
 MAX_VERSION_FILENAME = base_dir + 'file_versions.json'
 
@@ -31,26 +35,28 @@ PLAYER_INFO = {
     "human": {
         "max_moves": 100000,
         "logging_level": logging.INFO,
-        "history_directory": HISTORY_DIR + "human/"
+        "history_directory": HISTORY_DIR + "human/",
+        "class": Human
     },
     "bot_v1": {
         "max_moves": 500,
         "logging_level": logging.WARNING,
-        "history_directory": HISTORY_DIR + "bot/v1/"
+        "history_directory": HISTORY_DIR + "bot/v1/",
+        "class": None
     },
     "test": {
         "max_moves": 5,
         "logging_level": logging.DEBUG,
-        "history_directory": HISTORY_DIR + "test/"
+        "history_directory": HISTORY_DIR + "test/",
+        "class": None
     },
     "admin": {
         "max_moves": 0,
         "logging_level": logging.DEBUG,
-        "history_directory": HISTORY_DIR
+        "history_directory": HISTORY_DIR,
+        "class": None
     }
 }
-
-
 
 """
 Metrics Settings - New Metrics Get Added to Dict and Defined Below
@@ -69,22 +75,20 @@ Metric function should only and must accept player class as an argument
 Every metric MUST have an associated function
 """
 def _game_metric(player):
-  if player.num_moves == player.max_moves:
-    total_game_history = player.game_history
-  else:
-    total_game_history = player.game_history[:player.num_moves + 1]
-  return total_game_history.tolist()
+    if player.num_moves == player.max_moves:
+        total_game_history = player.game_history
+    else:
+        total_game_history = player.game_history[:player.num_moves + 1]
+    return total_game_history.tolist()
 
 def _count_metric(player):
-  return int(player.num_moves)
+    return int(player.num_moves)
 
 def _score_metric(player):
-  return int(np.sum(player.game_board.board))
+    return int(np.sum(player.game_board.board))
 
 def _max_tile_metric(player):
-  return int(np.max(player.game_board.board))
-
-
+    return int(np.max(player.game_board.board))
 
 GAME_METRICS = {
     "count": {

@@ -1,7 +1,7 @@
-from game_board import GameBoard
+from .game_board import GameBoard
+from config import config
 
 import logging
-import configparser
 import os
 import json
 import numpy as np
@@ -20,23 +20,23 @@ class Player:
 
     def __init__(self, player_type, logger_level = None):
 
-        self.config = configparser['Settings']
-        self.player_info = self.config['PLAYER_INFO']
-
         self.player_type = player_type
-        if self.player_type not in self.player_info:
+        if self.player_type not in config.PLAYER_INFO:
             raise ValueError(f"Player type {player_type} not accepted player")
 
         self.logger = logging.getLogger("2048_logger")
-        logging_level = self.player_info[self.player_type]['logging_level'] if not logger_level else logger_level
+        logging_level = config.PLAYER_INFO[self.player_type]['logging_level'] if not logger_level else logger_level
         self.logger.setLevel(logging_level)
+
+        stream_handler = logging.StreamHandler()
+        self.logger.addHandler(stream_handler)
 
         self.game_board = GameBoard(logger = self.logger)
 
-        self.max_moves = self.player_info[self.player_type]['max_moves']
+        self.max_moves = config.PLAYER_INFO[self.player_type]['max_moves']
         self.num_moves = 0
 
-        self.history_directory = self.player_info[self.player_type]['history_directory']
+        self.history_directory = config.PLAYER_INFO[self.player_type]['history_directory']
         if not os.path.exists(self.history_directory):
             os.makedirs(self.history_directory)
             self.logger.debug(f"Created directory {self.history_directory}")
@@ -44,11 +44,11 @@ class Player:
         self.max_version = self._read_max_version()
         self.game_history = np.zeros((self.max_moves, 4, 4), np.int16)
 
-        self.move_dict = self.config['MOVE_DICT']
+        self.move_dict = config.MOVE_DICT
 
     def _read_max_version(self, default_val = -1):
 
-        data = _read_json_file(self.config['MAX_VERSION_FILENAME'])
+        data = _read_json_file(config.MAX_VERSION_FILENAME)
         self.logger.debug(f"Reading in data: {data}")
 
         if not data:
@@ -56,7 +56,7 @@ class Player:
             return default_val
 
         if self.player_type not in data:
-            self.logger.warning(f"Player type not found in {self.config['MAX_VERSION_FILENAME']}, returning default value of {default_val}")
+            self.logger.warning(f"Player type not found in {config.MAX_VERSION_FILENAME}, returning default value of {default_val}")
             return default_val
 
         return int(data[self.player_type])
@@ -67,12 +67,12 @@ class Player:
         if data_overwrite:
             data = data_overwrite
         else:
-            data = _read_json_file(self.config['MAX_VERSION_FILENAME'])
+            data = _read_json_file(config.MAX_VERSION_FILENAME)
             if not isinstance(new_version, int):
                 new_version = int(new_version)
             data[self.player_type] = new_version
 
-        with open(self.config['MAX_VERSION_FILENAME'], 'w') as file:
+        with open(config.MAX_VERSION_FILENAME, 'w') as file:
             try:
                 json.dump(data, file)
                 return data
@@ -142,7 +142,7 @@ class Player:
 
         game_metrics = {}
 
-        for name, settings in self.config['GAME_METRICS'].items():
+        for name, settings in config.GAME_METRICS.items():
             self.logger.debug(f"Calculating metric {name}")
             metric = settings['func'](self)
             self.logger.debug(f"Returned metric: {metric}")
@@ -157,7 +157,7 @@ class Player:
         game_list = [os.path.join(directory, entry) for entry in os.listdir(directory) if entry.endswith('.json')]
 
         num_games = len(game_list)
-        metric_lists = {name: np.zeros(num_games) for name,settings in self.config['GAME_METRICS'].items
+        metric_lists = {name: np.zeros(num_games) for name,settings in config.GAME_METRICS.items()
                         if settings["is_graphable"]}
 
         for i,game in enumerate(game_list):
