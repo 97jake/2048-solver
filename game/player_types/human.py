@@ -1,3 +1,4 @@
+from config import config
 from ..player import Player
 
 class Human(Player):
@@ -7,9 +8,10 @@ class Human(Player):
 
 
     def play_game(self):
-        self.logger.info(self.game_board)
 
         while True:
+
+            self.logger.info(self.game_board)
 
             if self._game_is_over():
                 self._save_game_data()
@@ -17,7 +19,7 @@ class Human(Player):
                 self.logger.info("Thanks for playing!")
                 break
 
-            response = input("Make a move: ")
+            response = config.read_arrow_key()
 
             if response == "quit":
                 self.logger.info("Thanks for playing!")
@@ -35,4 +37,3 @@ class Human(Player):
 
                 if valid_move:
                     self._update_game_info()
-                    self.logger.info(self.game_board)
