@@ -3,6 +3,9 @@ from game.player_types import *
 import logging
 import numpy as np
 
+from prompt_toolkit import PromptSession
+from prompt_toolkit.key_binding import KeyBindings
+
 #File Paths
 base_dir = './data/'
 HISTORY_DIR = base_dir + 'game_history/'
@@ -112,3 +115,28 @@ GAME_METRICS = {
         "is_graphable": False
     }
 }
+
+# Create a PromptSession instance
+session = PromptSession()
+
+# Define key bindings for arrow keys
+bindings = KeyBindings()
+@bindings.add('up')
+def _(event):
+    event.app.exit("up")
+@bindings.add('down')
+def _(event):
+    event.app.exit("down")
+@bindings.add('left')
+def _(event):
+    event.app.exit("left")
+@bindings.add('right')
+def _(event):
+    event.app.exit("right")
+
+def read_arrow_key():
+    try:
+        return session.prompt("Press arrow keys (press 'Ctrl-C' to exit): ", key_bindings=bindings)
+    except KeyboardInterrupt:
+        print("\nExiting...")
+        return 'quit'
