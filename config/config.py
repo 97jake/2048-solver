@@ -9,7 +9,6 @@ from prompt_toolkit.key_binding import KeyBindings
 #File Paths
 base_dir = './data/'
 HISTORY_DIR = base_dir + 'game_history/'
-MAX_VERSION_FILENAME = base_dir + 'file_versions.json'
 
 #Game Board Settings
 GAME_COLORS = {
