@@ -20,9 +20,5 @@ Then you can start playing! Run
 python3 main.py --player human
 ```
 
-Valid commands are 
-"up"
-"down"
-"left"
-"right"
-"quit" 
+Use arrows to make moves or type "left", "right", "up", or "down"
+Exit at any time using Ctr + C or type "quit"
