@@ -10,27 +10,6 @@ from prompt_toolkit.key_binding import KeyBindings
 base_dir = './data/'
 HISTORY_DIR = base_dir + 'game_history/'
 
-#Game Board Settings
-GAME_COLORS = {
-    0: "\033[0m",     #default
-    2: "\033[32m",    #yellow
-    4: "\033[33m",    #orange
-    8: "\033[34m",    #blue
-    16: "\033[35m",   #purple
-    32: "\033[36m",   #cyan
-    64: "\033[37m",   #white
-    128: "\033[38m",  #gray
-    256: "\033[38m",  #gray
-    512: "\033[38m",  #gray
-    1024: "\033[38m", #gray
-    2048: "\033[38m"  #gray
-}
-MOVE_DICT = {
-    "up": 0,
-    "right": 1,
-    "left": 3,
-    "down": 2
-}
 
 #Player Settings - New Players get added here!
 PLAYER_INFO = {
@@ -58,6 +37,37 @@ PLAYER_INFO = {
         "history_directory": HISTORY_DIR,
         "class": None
     }
+}
+
+#Game Board Settings
+GAME_COLORS = {
+    0: "\033[0m",     #default
+    2: "\033[32m",    #yellow
+    4: "\033[33m",    #orange
+    8: "\033[34m",    #blue
+    16: "\033[35m",   #purple
+    32: "\033[36m",   #cyan
+    64: "\033[37m",   #white
+    128: "\033[38m",  #gray
+    256: "\033[38m",  #gray
+    512: "\033[38m",  #gray
+    1024: "\033[38m", #gray
+    2048: "\033[38m"  #gray
+}
+
+MOVE_DICT = {
+    "up": 0,
+    "right": 1,
+    "left": 3,
+    "down": 2
+}
+
+LOGGING_LEVELS = {
+    'debug': logging.DEBUG,
+    'info': logging.INFO,
+    'warning': logging.WARNING,
+    'error': logging.ERROR,
+    'critical': logging.CRITICAL
 }
 
 """
