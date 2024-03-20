@@ -1,26 +1,10 @@
 from config import config
 from ..player import Player
 
-
-"""
-This is a template for new player types 
-
-CHANGE
-1. player_type attribute passed in to super class
-2. _pick_a_move method
-3. __init__.py to import new class to config file
-4. Add new player type to PLAYER_INFO dict in config.py 
-
-_pick_a_move should 
-* contain all the logic for the player
-* return 0, 1, 2, or 3 (see mapping in config file)
-
-Not meant to be played or edited!
-"""
-class Example(Player):
+class BotV1(Player):
 
     def __init__(self, logger_level=None):
-        super().__init__(player_type = 'example', logger_level=logger_level)
+        super().__init__(player_type = 'bot_v1', logger_level=logger_level)
 
 
     def play_game(self):
@@ -52,6 +36,4 @@ class Example(Player):
 
     def _pick_a_move(self, available_moves):
 
-        #Implement move logic here
-
-        return 0
+        return available_moves[0]

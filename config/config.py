@@ -15,26 +15,20 @@ HISTORY_DIR = base_dir + 'game_history/'
 PLAYER_INFO = {
     "human": {
         "max_moves": 100000,
-        "logging_level": logging.INFO,
+        "logging_level": "info",
         "history_directory": HISTORY_DIR + "human/",
         "class": Human
     },
     "bot_v1": {
         "max_moves": 500,
-        "logging_level": logging.WARNING,
+        "logging_level": "warning",
         "history_directory": HISTORY_DIR + "bot/v1/",
-        "class": None
+        "class": BotV1
     },
     "test": {
         "max_moves": 5,
-        "logging_level": logging.DEBUG,
+        "logging_level": "debug",
         "history_directory": HISTORY_DIR + "test/",
-        "class": None
-    },
-    "admin": {
-        "max_moves": 0,
-        "logging_level": logging.DEBUG,
-        "history_directory": HISTORY_DIR,
         "class": None
     }
 }
