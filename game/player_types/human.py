@@ -19,15 +19,12 @@ class Human(Player):
                 self.logger.info("Thanks for playing!")
                 break
 
-            response = config.read_arrow_key()
+            response = self._pick_a_move(self.available_moves)
 
             if response == "quit":
                 self.logger.info("Thanks for playing!")
                 self._reset()
                 break
-
-            if response not in self.move_dict:
-                self.logger.warning("Not a recognized move; valid moves are up, right, down, or left")
 
             else:
                 move = self.move_dict[response]
@@ -37,3 +34,13 @@ class Human(Player):
 
                 if valid_move:
                     self._update_game_info()
+                else:
+                    self.available_moves.remove(response)
+
+    def _pick_a_move(self, available_moves):
+
+        move = config.read_arrow_key()
+
+        if move not in self.move_dict.keys() and move != 'quit':
+            self.logger.warning(f"{move} is not a recognized move; valid moves are up, left, down, or right")
+        return move
