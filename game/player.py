@@ -45,6 +45,7 @@ class Player:
         self.game_history = np.zeros((self.max_moves, 4, 4), np.int16)
 
         self.move_dict = config.MOVE_DICT
+        self.available_moves = self.move_dict.values()
 
     def _get_max_version(self, default_val = -1):
 
@@ -91,6 +92,7 @@ class Player:
 
         self.game_history[self.num_moves] = self.game_board.board
         self.num_moves += 1
+        self.available_moves = self.move_dict.values()
 
 
     def _get_game_metrics(self):
