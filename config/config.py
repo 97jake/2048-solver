@@ -17,19 +17,19 @@ PLAYER_INFO = {
         "max_moves": 100000,
         "logging_level": "info",
         "history_directory": HISTORY_DIR + "human/",
-        "class": Human
+        "func": human_make_move
     },
     "bot_v1": {
         "max_moves": 500,
         "logging_level": "warning",
         "history_directory": HISTORY_DIR + "bot/v1/",
-        "class": BotV1
+        "func": bot_v1_make_move
     },
     "test": {
         "max_moves": 5,
         "logging_level": "debug",
         "history_directory": HISTORY_DIR + "test/",
-        "class": None
+        "func": None
     }
 }
 
@@ -53,7 +53,8 @@ MOVE_DICT = {
     "up": 0,
     "right": 1,
     "left": 3,
-    "down": 2
+    "down": 2,
+    "quit": "quit"
 }
 
 LOGGING_LEVELS = {

@@ -1,7 +1,9 @@
 import argparse
-import logging
 
 from config import config
+from game.player import Player
+
+from tqdm import tqdm
 
 def main():
 
@@ -13,6 +15,8 @@ def main():
                         help='Player type (defined in config file)', required=True)
     parser.add_argument('-l', '--log-level', choices=config.LOGGING_LEVELS.keys(), default=None,
                         help='Set the logging level (default: %(default)s)', required=False)
+    parser.add_argument('-r', '--runs', default=1,
+                        help='Number of games to play (default: %(default)s)', required=False)
 
     # Parse arguments
     args = parser.parse_args()
@@ -22,9 +26,10 @@ def main():
 
     log_level = args.log_level if args.log_level else config.PLAYER_INFO[args.player]['logging_level']
 
-    player = config.PLAYER_INFO[args.player]["class"](logger_level=config.LOGGING_LEVELS[log_level])
+    player = Player(player_type=args.player, logger_level = config.LOGGING_LEVELS[log_level])
 
-    player.play_game()
+    for _ in tqdm(range(int(args.runs))):
+        player.play_game()
 
 
 if __name__ == '__main__':
