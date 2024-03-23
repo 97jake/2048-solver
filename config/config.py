@@ -101,22 +101,22 @@ GAME_METRICS = {
     "count": {
         "type": int,
         "func": _count_metric,
-        "is_graphable": True
+        "graph": "hist"
     },
     "score": {
         "type": int,
         "func": _score_metric,
-        "is_graphable": True
+        "graph": "hist"
     },
     "max_tile": {
         "type": int,
         "func": _max_tile_metric,
-        "is_graphable": True
+        "graph": "bar"
     },
     "game": {
         "type": np.ndarray,
         "func": _game_metric,
-        "is_graphable": False
+        "graph": None
     }
 }
 
