@@ -25,6 +25,12 @@ PLAYER_INFO = {
         "history_directory": HISTORY_DIR + "bot/v1/",
         "func": bot_v1_make_move
     },
+    "bot_v2": {
+        "max_moves": 500,
+        "logging_level": "warning",
+        "history_directory": HISTORY_DIR + "bot/v2/",
+        "func": bot_v2_make_move
+    },
     "test": {
         "max_moves": 5,
         "logging_level": "debug",

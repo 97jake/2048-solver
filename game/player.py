@@ -44,6 +44,8 @@ class Player:
 
         self.max_version = self._get_max_version()
         self.game_history = np.zeros((self.max_moves, 4, 4), np.int16)
+        self.move_history = [-1]
+
 
         self.move_dict = config.MOVE_DICT
         self.available_moves = list(self.move_dict.values())
@@ -76,7 +78,7 @@ class Player:
                 self.logger.debug(self.game_board)
 
                 if valid_move:
-                    self._update_game_info()
+                    self._update_game_info(move)
                 else:
                     self.available_moves.remove(move)
 
@@ -121,11 +123,12 @@ class Player:
         return self.game_board.game_over() or self.num_moves == self.max_moves
 
 
-    def _update_game_info(self):
+    def _update_game_info(self, move):
 
         self.game_history[self.num_moves] = self.game_board.board
         self.num_moves += 1
         self.available_moves = list(self.move_dict.values())
+        self.move_history.append(move)
 
 
     def _get_game_metrics(self):

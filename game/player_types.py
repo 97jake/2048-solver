@@ -18,3 +18,11 @@ def human_make_move(player):
 
 def bot_v1_make_move(player):
     return player.available_moves[0]
+
+def bot_v2_make_move(player):
+
+    if player.move_history[-1] == 3:
+            return 1 if 1 in player.available_moves else player.available_moves[0]
+    if player.move_history[-1] == 2:
+            return 0 if 0 in player.available_moves else player.available_moves[0]
+    return player.available_moves[0]
