@@ -6,6 +6,7 @@ import os
 import json
 import numpy as np
 import re
+from matplotlib import pyplot as plt
 
 
 def _read_json_file(filename):
@@ -146,8 +147,9 @@ class Player:
         game_list = [os.path.join(directory, entry) for entry in os.listdir(directory) if entry.endswith('.json')]
 
         num_games = len(game_list)
+        self.logger.debug(f"Found {num_games} games in directory {self.history_directory}")
         metric_lists = {name: np.zeros(num_games) for name,settings in config.GAME_METRICS.items()
-                        if settings["is_graphable"]}
+                        if settings["graph"]}
 
         for i,game in enumerate(game_list):
             data = _read_json_file(game)
@@ -155,7 +157,59 @@ class Player:
             for name, metric_list in metric_lists.items():
                 metric_list[i] = data[name]
 
-        return metric_list
+        return metric_lists
+
+
+    def graph_player_data(self, metric_list, num_bins = 30):
+
+        metric_data_dict = self._get_player_game_history()
+
+        for metric in metric_list:
+
+            if metric not in metric_data_dict:
+                continue
+
+            data = metric_data_dict[metric]
+            self.logger.debug(f"data: {data}")
+
+            if config.GAME_METRICS[metric]['graph'] == 'hist':
+                self.logger.debug(f"Generating histogram for {metric} metric")
+                plt.hist(data, bins=num_bins, color='skyblue', edgecolor='black')
+
+                # Add labels and title
+                plt.xlabel(metric)
+                plt.ylabel('Frequency')
+                plt.title(f'{metric.capitalize()} Histogram')
+
+                # Show plot
+                plt.show()
+
+            elif config.GAME_METRICS[metric]['graph'] == 'bar':
+                self.logger.debug(f"Generating bar chart for {metric} metric")
+                unique_elements, counts = [], []
+                if isinstance(data, np.ndarray):
+                    data = data.tolist()
+                for item in set(data):
+                    unique_elements.append(int(item))
+                    counts.append(data.count(item))
+
+                sorted_lists = sorted(zip(unique_elements, counts))
+
+                # Unzip the sorted lists
+                unique_elements, counts = zip(*sorted_lists)
+
+                unique_elements = [str(i) for i in unique_elements]
+
+                # Create bar chart
+                plt.bar(unique_elements, counts, color='skyblue')
+
+                # Add labels and title
+                plt.xlabel(metric)
+                plt.ylabel('Frequency')
+                plt.title(f'{metric.capitalize()} Bar Chart')
+
+                # Show plot
+                plt.show()
 
 
     def _set_game_board(self, board):
