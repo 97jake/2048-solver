@@ -1,14 +1,14 @@
+import tensorflow as tf
 from config import config
-import numpy as np
 import logging
-import random
+import pdb
 
 
 class GameBoard:
 
-    def __init__(self, logger = None):
+    def __init__(self, logger=None):
 
-        self.board = np.zeros((4,4), np.int16)
+        self.board = tf.zeros((4, 4, 1), dtype=tf.int64)
         self.new_number_generation()
 
         self.color_codes = config.GAME_COLORS
@@ -18,7 +18,6 @@ class GameBoard:
             self.logger = logging.getLogger("2048_logger")
             self.logger.setLevel(logging.INFO)
 
-
     def __str__(self):
 
         """
@@ -26,11 +25,11 @@ class GameBoard:
         """
 
         board_string = ""
-        for i in self.board:
+        for i in range(self.board.shape[0]):
             board_string += "\n   -    -    -    -  \n"
             row_str = "|"
-            for j in i:
-                square_str = str(j)
+            for j in range(self.board.shape[1]):
+                square_str = str(self.board[i, j, 0].numpy())
                 num_digits = len(square_str)
                 if num_digits == 1:
                     before = "  "
@@ -45,13 +44,12 @@ class GameBoard:
                     before = ""
                     after = " "
 
-                row_str += before + self.color_codes[j] + str(j) + self.color_codes[0] + after
+                row_str += before + self.color_codes[self.board[i, j, 0].numpy()] + square_str + self.color_codes[0] + after
             row_str += "|\n"
             board_string += row_str
         board_string += "   -    -    -    -  "
 
         return board_string
-
 
     def move(self, move):
 
@@ -64,17 +62,17 @@ class GameBoard:
         """
 
         self.logger.debug(f"Received move: {move}")
-        if move not in [0,1,2,3]:
+        if move not in [0, 1, 2, 3]:
             raise ValueError("Not a valid move - valid move is 0, 1, 2, or 3")
 
-        original_board = np.copy(self.board)
+        original_board = tf.identity(self.board)
 
-        for i in range(move):
-            original_board = np.rot90(original_board)
+        for _ in range(move):
+            original_board = tf.image.rot90(original_board)
 
         new_board = self._execute_move(original_board)
-        for i in range(4 - move):
-            new_board = np.rot90(new_board)
+        for _ in range(4 - move):
+            new_board = tf.image.rot90(new_board)
 
         if self._board_has_not_moved(new_board):
             self.logger.info("Invalid move, squares must move!")
@@ -86,7 +84,6 @@ class GameBoard:
             self.logger.debug(self.board)
             return True
 
-
     def game_over(self):
 
         """
@@ -97,75 +94,81 @@ class GameBoard:
         2. You have a 2048 tile
         """
 
-        if np.any(self.board == 2048):
+        if tf.reduce_any(tf.equal(self.board, 2048)):
             self.logger.critical("2048 - You Won!")
             return True
 
-        if not np.all(self.board != 0):
+        if not tf.reduce_all(tf.not_equal(self.board, 0)):
             return False
 
-        copy_board = np.copy(self.board)
-        if np.array_equal(copy_board, self._execute_move(copy_board)):
-            copy_board = np.rot90(copy_board)
-            if np.array_equal(copy_board, self._execute_move(copy_board)):
-                copy_board = np.rot90(copy_board)
-                if np.array_equal(copy_board, self._execute_move(copy_board)):
-                    copy_board = np.rot90(copy_board)
-                    if np.array_equal(copy_board, self._execute_move(copy_board)):
+        copy_board = tf.identity(self.board)
+        if tf.reduce_all(tf.equal(copy_board, self._execute_move(copy_board))):
+            copy_board = tf.image.rot90(copy_board)
+            if tf.reduce_all(tf.equal(copy_board, self._execute_move(copy_board))):
+                copy_board = tf.image.rot90(copy_board)
+                if tf.reduce_all(tf.equal(copy_board, self._execute_move(copy_board))):
+                    copy_board = tf.image.rot90(copy_board)
+                    if tf.reduce_all(tf.equal(copy_board, self._execute_move(copy_board))):
                         self.logger.info("No more moves - You Lose!")
                         return True
 
         return False
-
 
     def new_number_generation(self):
         """
         Generate a new number at the beginning of new turn
         Only generates a new number in an empty space
         """
+        new_number = (tf.random.uniform((), dtype=tf.int64, maxval=2, seed=None) + 1) * 2  # Randomly choose 2 or 4
 
-        rows, columns = np.where(self.board == 0)
+        # Get the indices of empty cells in the board
+        indices = tf.where(tf.equal(self.board, 0))
 
-        new_number = random.choice([2,4])
-        index = random.choice(np.arange(len(rows)))
-        array_index = (rows[index], columns[index])
+        # Randomly choose an index from the list of empty cells
+        index = tf.random.uniform((), dtype=tf.int32, maxval=tf.shape(indices)[0], seed=None)
+        array_index = tf.gather_nd(indices, [index])
 
-        self.board[array_index] = new_number
-
+        # Update the board tensor with the new number at the chosen index
+        self.board = tf.tensor_scatter_nd_update(self.board, [array_index], [new_number])
 
     def _execute_move(self, board):
 
-        new_board = np.zeros((4,4), np.int16)
+        new_board = tf.zeros_like(board, dtype=tf.int64)
 
         for j in range(board.shape[1]):
 
-            column = board[:,j]
-            new_column = np.zeros_like(column, np.int16)
+            column = board[:, j, :][:,0]
 
-            non_zero_column = column[column!=0]
+            non_zero_indices = tf.where(column != 0)[:, 0]
+            non_zero_values = tf.gather(column, non_zero_indices)
+
+            new_column = tf.zeros_like(column, dtype=tf.int64)
 
             for k in range(4):
-                num, non_zero_column = self._compress_column(non_zero_column)
-                new_column[k] = num
+                num, non_zero_values = self._compress_column(non_zero_values)
+                new_column = tf.tensor_scatter_nd_update(new_column, [[k]], num)
 
-            new_board[:,j] = new_column
+            new_column_expanded = tf.expand_dims(new_column, axis=1)
+            new_column_expanded = tf.expand_dims(new_column_expanded, axis=2)
+            new_board = tf.concat([new_board[:, :j, :], new_column_expanded, new_board[:, j+1:, :]], axis=1)
 
         return new_board
 
-    def _compress_column(self, column):
+    def _board_has_not_moved(self, new_board):
+        return tf.reduce_all(tf.equal(self.board, new_board))
 
-        if len(column) == 0:
-            return 0, []
+    @staticmethod
+    def _compress_column(column):
 
-        elif len(column) == 1:
-            return column[0], []
+        if tf.shape(column)[0] == 0:
+            return tf.constant([0], dtype=tf.int64), tf.constant([], dtype=tf.int64)
+
+        elif tf.shape(column)[0] == 1:
+            return tf.expand_dims(column[0], axis=0), tf.constant([], dtype=tf.int64)
 
         else:
             if column[0] == column[1]:
-                return column[0] + column[1], column[2:]
+                return tf.expand_dims(column[0] + column[1], axis=0), column[2:]
             else:
-                return column[0], column[1:]
+                return tf.expand_dims(column[0], axis=0), column[1:]
 
-
-    def _board_has_not_moved(self, new_board):
-        return np.array_equal(self.board, new_board)

@@ -1,13 +1,12 @@
+import tensorflow as tf
 from .game_board import GameBoard
 from .player_types import *
 
 import logging
 import os
 import json
-import numpy as np
 import re
 from matplotlib import pyplot as plt
-
 
 def _read_json_file(filename):
     try:
@@ -15,7 +14,6 @@ def _read_json_file(filename):
             return json.load(file)
     except Exception as e:
         raise FileNotFoundError(f"Reading failed with error:\n {e}")
-
 
 class Player:
 
@@ -43,9 +41,8 @@ class Player:
             self.logger.debug(f"Created directory {self.history_directory}")
 
         self.max_version = self._get_max_version()
-        self.game_history = np.zeros((self.max_moves, 4, 4), np.int16)
+        self.game_history = tf.zeros((4, 4, self.max_moves), dtype=tf.int64)
         self.move_history = [-1]
-
 
         self.move_dict = config.MOVE_DICT
         self.available_moves = list(self.move_dict.values())
@@ -71,7 +68,6 @@ class Player:
 
             if move not in self.move_dict.values():
                 self.logger.warning("Not a recognized move; valid moves are 0,1,2, or 3")
-
             else:
                 valid_move = self.game_board.move(move)
 
@@ -80,12 +76,12 @@ class Player:
                 if valid_move:
                     self._update_game_info(move)
                 else:
-                    self.available_moves.remove(move)
+                    if self.player_type != 'human':
+                        self.available_moves.remove(move)
 
     def _get_max_version(self, default_val = -1):
 
         pattern = r'\d+'
-
         self.logger.debug(f"Getting game info for player {self.player_type}")
 
         game_list = [entry for entry in os.listdir(self.history_directory) if entry.endswith('.json')]
@@ -104,7 +100,6 @@ class Player:
 
         return max_version
 
-
     def _save_game_data(self):
 
         file_name = self.history_directory + f'game_{self.max_version + 1}.json'
@@ -122,14 +117,15 @@ class Player:
     def _game_is_over(self):
         return self.game_board.game_over() or self.num_moves == self.max_moves
 
-
     def _update_game_info(self, move):
 
-        self.game_history[self.num_moves] = self.game_board.board
+        self.game_history = tf.concat([self.game_history[:, :, :self.num_moves],
+                                       self.game_board.board,
+                                       self.game_history[:, :, (self.num_moves+1):]],
+                                      axis=-1)
         self.num_moves += 1
         self.available_moves = list(self.move_dict.values())
         self.move_history.append(move)
-
 
     def _get_game_metrics(self):
 
@@ -151,19 +147,19 @@ class Player:
 
         num_games = len(game_list)
         self.logger.debug(f"Found {num_games} games in directory {self.history_directory}")
-        metric_lists = {name: np.zeros(num_games) for name,settings in config.GAME_METRICS.items()
+        metric_lists = {name: tf.zeros(num_games, dtype=tf.int32) for name, settings in config.GAME_METRICS.items()
                         if settings["graph"]}
 
-        for i,game in enumerate(game_list):
+        for i, game in enumerate(game_list):
             data = _read_json_file(game)
 
             for name, metric_list in metric_lists.items():
-                metric_list[i] = data[name]
+                metric_list[i].assign(data[name])
 
         return metric_lists
 
 
-    def graph_player_data(self, metric_list, num_bins = 30):
+    def graph_player_data(self, metric_list, num_bins=30):
 
         metric_data_dict = self._get_player_game_history()
 
@@ -189,19 +185,8 @@ class Player:
 
             elif config.GAME_METRICS[metric]['graph'] == 'bar':
                 self.logger.debug(f"Generating bar chart for {metric} metric")
-                unique_elements, counts = [], []
-                if isinstance(data, np.ndarray):
-                    data = data.tolist()
-                for item in set(data):
-                    unique_elements.append(int(item))
-                    counts.append(data.count(item))
-
-                sorted_lists = sorted(zip(unique_elements, counts))
-
-                # Unzip the sorted lists
-                unique_elements, counts = zip(*sorted_lists)
-
-                unique_elements = [str(i) for i in unique_elements]
+                unique_elements, counts = tf.unique(data)
+                unique_elements = tf.strings.as_string(unique_elements.numpy())
 
                 # Create bar chart
                 plt.bar(unique_elements, counts, color='skyblue')
@@ -215,13 +200,13 @@ class Player:
                 plt.show()
 
 
+
     def _set_game_board(self, board):
-        self.game_board.board = board
+        self.game_board.board = tf.convert_to_tensor(board, dtype=tf.int16)
 
 
     def _reset(self):
-
-        self.game_board = GameBoard(logger = self.logger)
-        self.game_history = np.zeros((self.max_moves, 4, 4), np.int16)
+        self.game_board = GameBoard(logger=self.logger)
+        self.game_history = tf.zeros((self.max_moves, 4, 4), dtype=tf.int16)
         self.max_version = self._get_max_version()
         self.num_moves = 0

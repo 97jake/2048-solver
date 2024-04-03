@@ -1,17 +1,15 @@
 from game.player_types import *
-
 import logging
-import numpy as np
+import tensorflow as tf
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.key_binding import KeyBindings
 
-#File Paths
+# File Paths
 base_dir = './data/'
 HISTORY_DIR = base_dir + 'game_history/'
 
-
-#Player Settings - New Players get added here!
+# Player Settings - New Players get added here!
 PLAYER_INFO = {
     "human": {
         "max_moves": 100000,
@@ -39,20 +37,20 @@ PLAYER_INFO = {
     }
 }
 
-#Game Board Settings
+# Game Board Settings
 GAME_COLORS = {
-    0: "\033[0m",     #default
-    2: "\033[32m",    #yellow
-    4: "\033[33m",    #orange
-    8: "\033[34m",    #blue
-    16: "\033[35m",   #purple
-    32: "\033[36m",   #cyan
-    64: "\033[37m",   #white
-    128: "\033[38m",  #gray
-    256: "\033[38m",  #gray
-    512: "\033[38m",  #gray
-    1024: "\033[38m", #gray
-    2048: "\033[38m"  #gray
+    0: "\033[0m",     # default
+    2: "\033[32m",    # yellow
+    4: "\033[33m",    # orange
+    8: "\033[34m",    # blue
+    16: "\033[35m",   # purple
+    32: "\033[36m",   # cyan
+    64: "\033[37m",   # white
+    128: "\033[38m",  # gray
+    256: "\033[38m",  # gray
+    512: "\033[38m",  # gray
+    1024: "\033[38m", # gray
+    2048: "\033[38m"  # gray
 }
 
 MOVE_DICT = {
@@ -92,16 +90,16 @@ def _game_metric(player):
         total_game_history = player.game_history
     else:
         total_game_history = player.game_history[:player.num_moves + 1]
-    return total_game_history.tolist()
+    return [total_game_history[:,:,i].numpy().tolist() for i in range(tf.shape(total_game_history)[2])]
 
 def _count_metric(player):
     return int(player.num_moves)
 
 def _score_metric(player):
-    return int(np.sum(player.game_board.board))
+    return int(tf.reduce_sum(player.game_board.board).numpy())
 
 def _max_tile_metric(player):
-    return int(np.max(player.game_board.board))
+    return int(tf.reduce_max(player.game_board.board).numpy())
 
 GAME_METRICS = {
     "count": {
@@ -120,7 +118,7 @@ GAME_METRICS = {
         "graph": "bar"
     },
     "game": {
-        "type": np.ndarray,
+        "type": tf.Tensor,
         "func": _game_metric,
         "graph": None
     }
